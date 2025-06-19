@@ -8,8 +8,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Download model file from Argos website
 RUN apt-get update && apt-get install -y wget && \
-    wget https://www.argosopentech.com/argospm/packages/translate-en_hi.argosmodel && \
+    wget https://www.argosopentech.com/argospm/packages/translate-en_hi-1_1.argosmodel && \
     apt-get remove -y wget && apt-get clean
+
 
 COPY . .
 
