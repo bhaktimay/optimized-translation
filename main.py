@@ -1,39 +1,29 @@
+from flask import Flask, request, jsonify
 import argostranslate.package
 import argostranslate.translate
 
-# Automatically download & install English to Hindi model if not present
-import os
-import urllib.request
-
-model_url = "https://www.argosopentech.com/argospm/index.json"
-pkg_url = "https://www.argosopentech.com/argospm/packages/en_hi.argosmodel"
-pkg_path = "en_hi.argosmodel"
-
-if not os.path.exists(pkg_path):
-    urllib.request.urlretrieve(pkg_url, pkg_path)
-    package = argostranslate.package.install_from_path(pkg_path)
-
-from flask import Flask, request, jsonify
+# Install model
+argostranslate.package.install_from_path("translate-en_hi.argosmodel")
+installed_languages = argostranslate.translate.get_installed_languages()
 
 app = Flask(__name__)
 
-@app.route("/translate", methods=["POST"])
-def translate_text():
+@app.route('/translate', methods=['POST'])
+def translate():
     data = request.get_json()
-    from_code = data.get("from")
-    to_code = data.get("to")
-    text = data.get("text")
 
-    installed_languages = argostranslate.translate.get_installed_languages()
-    from_lang = next((lang for lang in installed_languages if lang.code == from_code), None)
-    to_lang = next((lang for lang in installed_languages if lang.code == to_code), None)
+    from_lang = data.get("from", "en")
+    to_lang = data.get("to", "hi")
+    text = data.get("text", "")
 
-    if from_lang and to_lang:
-        translation = from_lang.get_translation(to_lang)
-        translated_text = translation.translate(text)
-        return jsonify({"translated": translated_text})
-    else:
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+
+    from_lang_obj = next((lang for lang in installed_languages if lang.code == from_lang), None)
+    to_lang_obj = next((lang for lang in installed_languages if lang.code == to_lang), None)
+
+    if not from_lang_obj or not to_lang_obj:
         return jsonify({"error": "Language not installed"}), 400
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    translated_text = from_lang_obj.get_translation(to_lang_obj).translate(text)
+    return jsonify({"translated_text": translated_text})
