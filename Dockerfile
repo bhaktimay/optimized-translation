@@ -6,21 +6,15 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install wget for model download
+# Install wget to fetch model from Google Drive
 RUN apt-get update && apt-get install -y wget && apt-get clean
 
-# Download the Argos model
-RUN wget https://argos-net.com/v1/translate-en_hi-1_1.argosmodel -O translate-en_hi.argosmodel
+# Download Argos model from Google Drive and install it
+RUN wget --no-check-certificate "https://drive.google.com/uc?export=download&id=1RM09SaccA4z9gi9_OEFnmu50TdSrnkZF" -O translate-en_hi.argosmodel && \
+    python3 -c "import argostranslate.package; argostranslate.package.install_from_path('translate-en_hi.argosmodel')" && \
+    rm translate-en_hi.argosmodel
 
-# Use Python to install the model instead of CLI
-RUN python3 -c "import argostranslate.package, argostranslate.translate; \
-pkg = argostranslate.package.Package.load('translate-en_hi.argosmodel'); \
-argostranslate.package.install_from_path('translate-en_hi.argosmodel')"
-
-# Remove model file to keep image small
-RUN rm translate-en_hi.argosmodel
-
-# Copy the rest of the code
+# Copy source code
 COPY . .
 
 EXPOSE 5000
