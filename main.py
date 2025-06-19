@@ -2,8 +2,8 @@ from flask import Flask, request, jsonify
 import argostranslate.package
 import argostranslate.translate
 
-# Install model
-argostranslate.package.install_from_path("translate-en_hi.argosmodel")
+# Update model file name
+argostranslate.package.install_from_path("translate-en_hi-1_1.argosmodel")
 installed_languages = argostranslate.translate.get_installed_languages()
 
 app = Flask(__name__)
